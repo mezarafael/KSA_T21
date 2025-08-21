@@ -23,6 +23,10 @@ cess_fig <- ggplot(data=cess2025) +
         text = element_text(size=9),axis.text.x=element_text(angle=60, hjust=1),
         legend.background = element_rect(fill=alpha('white', 0.4)))
 
+initcesstable<-cbind(age=0:99,init=subset(l_smkparams$main,sex=="males"&scenario=="baseline")[,"prob2025"], 
+                     cess=subset(cess2025,sex=="males")[,"prob2025"])
+write.csv(initcesstable,"output/initcesstable.csv",row.names = FALSE)
+
 mort2025 <- as.data.frame(c(m_p_M.mortNS_AP[,policyyear-startyear+1],
                             m_p_M.mortCS_AP[,policyyear-startyear+1],
                             a_p_M.mortYSQ_AP[,policyyear-startyear+1,10],
