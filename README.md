@@ -1,8 +1,8 @@
 ## The Kingdom of Saudi Arabia Tobacco Control Policy Model
 
-**1. Open 'R/03_main_analysis.R' to perform the analysis.**
+**1. Open 'R/03_main_analysis.R' to perform the analysis**
 
-**2. Set working directory to folder of your choosing.** 
+**2. Set working directory to folder of your choosing** 
 
 **3. Source 'R/01_model_inputs.R'**
 - Installs and loads necessary packages
