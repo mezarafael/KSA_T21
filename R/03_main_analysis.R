@@ -1,5 +1,5 @@
 rm(list = ls()) 
-setwd("/Users/jt1462/Dropbox/ITC_Proposal/KSA/")
+#setwd("/Users/jt1462/Dropbox/ITC_Proposal/KSA/")
 
 source('R/01_model_inputs.R')
 source('R/02_model_functions.R')
