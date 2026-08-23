@@ -31,7 +31,7 @@ v_policy.ages <- c(18:20) # ages affected by the policy
 date_variable <- format(Sys.Date(), "%m.%d.%y")
 startyear <- 2010   # starting year
 endyear <- 2100   # final calendar year
-policyyear <- 2025   # policy year
+policyyear <- 2026   # policy year
 calyears <- endyear-startyear+1     # number of cohort years
 v_calyears <- startyear:endyear  # index of calendar years 2000 -2100
 # v_stdbirths <- 1000000    #fixed birthrate/population size for prevalence calculations

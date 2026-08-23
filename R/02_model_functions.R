@@ -144,7 +144,7 @@ run_model <- function(mla.effect, name){
   m_MLAeffectsAP <- matrix(1,100,calyears)
   colnames(m_MLAeffectsAP) <- startyear:endyear
 
-  ## APPLY POLICY EFFECTS TO BASELINE INITIATION Starting in Policy Year 2025-2200
+  ## APPLY POLICY EFFECTS TO BASELINE INITIATION Starting in Policy Year 2026-2200
   for (age in v_policy.ages) {
     m_MLAeffectsAP[age, (policyyear-startyear+1):calyears] <- 1 - mla.effect
   }
@@ -152,7 +152,7 @@ run_model <- function(mla.effect, name){
   m_F.init.policy_AP <- m_MLAeffectsAP*m_F.initAP
   m_M.init.policy_AP <- m_MLAeffectsAP*m_M.initAP
   
-  ## APPLY POLICY EFFECTS TO BASELINE INITIATION Starting in Policy Year 2025-2200
+  ## APPLY POLICY EFFECTS TO BASELINE INITIATION Starting in Policy Year 2026-2200
   for (age in v_policy.ages) {
     m_MLAeffectsAP[age, (policyyear-startyear+1):calyears] <- 1 - mla.effect
   }
@@ -310,9 +310,9 @@ run_model <- function(mla.effect, name){
   # store dataframe with smoking initiation parameters during the policy year
   df_smkparams <- as.data.frame(c(m_F.init.policy_AP[,paste0(policyyear)], m_F.initAP[,paste0(policyyear)], 
                         m_M.init.policy_AP[,paste0(policyyear)], m_M.initAP[,paste0(policyyear)]))
-  df_smkparams$sex <- c(rep("females",200),rep("males",200))
-  df_smkparams$scenario <- c(rep("policy",100),rep("baseline",100),rep("policy",100),rep("baseline",100))
-  df_smkparams$age <- rep(seq(0:99)-1,4)
+  df_smkparams$sex <- c(rep("Females",200),rep("Males",200))
+  df_smkparams$scenario <- c(rep("T21",100),rep("Baseline",100),rep("T21",100),rep("Baseline",100))
+  df_smkparams$Age <- rep(seq(0:99)-1,4)
   colnames(df_smkparams)[1] <- paste0("prob",policyyear)
   
   return(list(df_mort.outputs= df_mort.outputs, l_pop_out=l_pop_out, df_CSprevs=df_CSprevs, df_smkparams=df_smkparams))
