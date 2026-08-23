@@ -1,5 +1,6 @@
 rm(list = ls()) 
-#setwd("/Users/jt1462/Dropbox/ITC_Proposal/KSA/")
+mainDir = "/Users/jamietam/Dropbox/GitHub/KSA_T21/"
+setwd(mainDir)
 
 source('R/01_model_inputs.R')
 source('R/02_model_functions.R')
@@ -9,7 +10,7 @@ m_M.cessAP = m_M.cessAP*1.0
 # m_F.cessAP = m_M.cessAP*1.0
 # m_F.cessAP[14:40,] = 0.1246198 # flatten female cessation to constant level from ages 13+
 
-namethisrun <- "aug2025"
+namethisrun <- "revised_figs"
 
 # Run model and get prevalence, mortality -----------------------------------------------------
 
@@ -36,13 +37,15 @@ source('R/04_visualization.R',echo=TRUE)
 # Economic Benefits Calculation based on Value of a Statistical Life-------------------------------------------------------------------------
 
 # --- Parameters ---
-gni_avgincome_ksa_2024 <- 35.57  # Average income based on GNI World Bank estimates in thousands USD
-gni_avgincome_us_2017 <- 55.98
-vsl_usa_2017 <- 9.631            # US value of statistical life in millions USD
-vsl_ksa_2024_usd <- vsl_usa_2017 * gni_avgincome_ksa_2024 / gni_avgincome_us_2017 # KSA value of statistical life in 2024 in millions USD
+# gni_avgincome_ksa_2024 <- 35.57  # Average income based on GNI World Bank estimates in thousands USD
+# gni_avgincome_us_2017 <- 55.98
+# vsl_usa_2017 <- 9.631            # US value of statistical life in millions USD
+# vsl_ksa_2024_usd_old <- vsl_usa_2017 * gni_avgincome_ksa_2024 / gni_avgincome_us_2017 # KSA value of statistical life in 2024 in millions USD
+vsl_ksa_2024_usd_low <- 1.653 # million USD 
+vsl_ksa_2024_usd_high <- 5.145 # million USD
 
 # --- Function to compute discounted benefits ---
-compute_discounted_benefit <- function(effect_type, df, vsl_million, discount_rate = 0.03, start_year = 2025, end_year = 2100) {
+compute_discounted_benefit <- function(effect_type, df, vsl_million, discount_rate = 0.03, start_year = 2026, end_year = 2100) {
   df_subset <- subset(df, sex == "Males" & year >= start_year & mla.effect == effect_type,
                       select = c("year", "SADsAverted", "cSADsAverted", "mla.effect"))
   
@@ -63,23 +66,36 @@ compute_discounted_benefit <- function(effect_type, df, vsl_million, discount_ra
 }
 
 # --- Apply function to each scenario ---
-effects <- c("main", "upper", "lower")
-results <- lapply(effects, compute_discounted_benefit, df = df_mortality.out, vsl_million = vsl_ksa_2024_usd)
+effects <- c("T21", "upper", "lower")
+# results_old <- lapply(effects, compute_discounted_benefit, df = df_mortality.out, vsl_million = vsl_ksa_2024_usd_old)
+results_low <- lapply(effects, compute_discounted_benefit, df = df_mortality.out, vsl_million = vsl_ksa_2024_usd_low)
+results_high <- lapply(effects, compute_discounted_benefit, df = df_mortality.out, vsl_million = vsl_ksa_2024_usd_high)
 
 # --- View results ---
-results
+results <- rbind( #cbind(as.data.frame(results_old), VSL=vsl_ksa_2024_usd_old), 
+      cbind(as.data.frame(results_low), VSL=vsl_ksa_2024_usd_low),
+      cbind(as.data.frame(results_high), VSL=vsl_ksa_2024_usd_high))
+
+t(results)
+
+# View annual results -----------------------------------------------------
 
 # Create a dataframe to examine the calculation more closely
-annual_cost_benefit <- subset(df_mortality.out,sex=="Males" & year>=2025 & mla.effect=="main")[,c("year","SADsAverted","cSADsAverted","mla.effect")]
-annual_cost_benefit$benefit <- annual_cost_benefit$SADsAverted * vsl_ksa_2024_usd # in millions
+annual_cost_benefit <- subset(df_mortality.out,sex=="Males" & year>=2026 & mla.effect=="T21")[,c("year","SADsAverted","cSADsAverted","mla.effect")]
+annual_cost_benefit$benefit_low <- annual_cost_benefit$SADsAverted * vsl_ksa_2024_usd_low # in millions
+annual_cost_benefit$benefit_high <- annual_cost_benefit$SADsAverted * vsl_ksa_2024_usd_high # in millions
 
 d.c = 0.03 # discount rate of 3%
-v.d = c( c(1 / (1 + d.c) ^ (0:(length(2025:2100)-1)))) # vector of discount weights
+v.d = c( c(1 / (1 + d.c) ^ (0:(length(2026:2100)-1)))) # vector of discount weights
 
 annual_cost_benefit$discount_weights <- v.d 
-annual_cost_benefit$benefit_discounted <- annual_cost_benefit$benefit * annual_cost_benefit$discount_weights # apply discounting vector 
+annual_cost_benefit$benefit_discounted_low <- annual_cost_benefit$benefit_low * annual_cost_benefit$discount_weights # apply discounting vector 
+annual_cost_benefit$benefit_discounted_high <- annual_cost_benefit$benefit_high * annual_cost_benefit$discount_weights # apply discounting vector 
 
-sum(annual_cost_benefit$benefit_discounted) # in millions USD
-sum(annual_cost_benefit$benefit_discounted)*3.75 # in millions SAR
+sum(annual_cost_benefit$benefit_discounted_low) # in millions USD
+sum(annual_cost_benefit$benefit_discounted_low)*3.75 # in millions SAR
 
-write.csv(annual_cost_benefit, 'output/annual_cost_benefit.csv',row.names = FALSE)
+sum(annual_cost_benefit$benefit_discounted_high) # in millions USD
+sum(annual_cost_benefit$benefit_discounted_high)*3.75 # in millions SAR
+
+write.csv(annual_cost_benefit, paste0('output/annual_cost_benefit_',namethisrun,'.csv'),row.names = FALSE)
