@@ -32,10 +32,6 @@ source('R/04_visualization.R',echo=TRUE)
 # Economic Benefits Calculation based on Value of a Statistical Life-------------------------------------------------------------------------
 
 # --- Parameters ---
-# gni_avgincome_ksa_2024 <- 35.57  # Average income based on GNI World Bank estimates in thousands USD
-# gni_avgincome_us_2017 <- 55.98
-# vsl_usa_2017 <- 9.631            # US value of statistical life in millions USD
-# vsl_ksa_2024_usd_old <- vsl_usa_2017 * gni_avgincome_ksa_2024 / gni_avgincome_us_2017 # KSA value of statistical life in 2024 in millions USD
 vsl_ksa_2024_usd_low <- 1.653 # million USD 
 vsl_ksa_2024_usd_high <- 5.145 # million USD
 
@@ -62,13 +58,11 @@ compute_discounted_benefit <- function(effect_type, df, vsl_million, discount_ra
 
 # --- Apply function to each scenario ---
 effects <- c("T21", "upper", "lower")
-# results_old <- lapply(effects, compute_discounted_benefit, df = df_mortality.out, vsl_million = vsl_ksa_2024_usd_old)
 results_low <- lapply(effects, compute_discounted_benefit, df = df_mortality.out, vsl_million = vsl_ksa_2024_usd_low)
 results_high <- lapply(effects, compute_discounted_benefit, df = df_mortality.out, vsl_million = vsl_ksa_2024_usd_high)
 
 # --- View results ---
-results <- rbind( #cbind(as.data.frame(results_old), VSL=vsl_ksa_2024_usd_old), 
-      cbind(as.data.frame(results_low), VSL=vsl_ksa_2024_usd_low),
+results <- rbind( cbind(as.data.frame(results_low), VSL=vsl_ksa_2024_usd_low),
       cbind(as.data.frame(results_high), VSL=vsl_ksa_2024_usd_high))
 
 t(results)
