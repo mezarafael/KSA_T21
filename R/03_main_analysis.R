@@ -5,12 +5,7 @@ setwd(mainDir)
 source('R/01_model_inputs.R')
 source('R/02_model_functions.R')
 
-# Modify smoking parameters
-m_M.cessAP = m_M.cessAP*1.0
-# m_F.cessAP = m_M.cessAP*1.0
-# m_F.cessAP[14:40,] = 0.1246198 # flatten female cessation to constant level from ages 13+
-
-namethisrun <- "revised_figs"
+namethisrun <- "malepopulation"
 
 # Run model and get prevalence, mortality -----------------------------------------------------
 
