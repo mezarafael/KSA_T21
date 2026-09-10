@@ -1,14 +1,4 @@
 # contains generate_prevs(), calculate_mort(), run_model()function --------
-# sex = 'Females'
-# m_initAP = m_F.initAP
-# m_cessAP = m_F.cessAP
-# m_p_mortCS_AP = m_p_F.mortCS_AP
-# m_p_mortNS_AP = m_p_F.mortNS_AP
-# a_p_mortYSQ_AP = a_p_F.mortYSQ_AP
-# df_pop = df_F.pop
-# df_prevs2013 = df_F.prevs2013
-# name=names(v_mla.effects)[e]
-# mla.effect <- v_mla.effects[e]
 
 generate_prevs <- function(startyear, sex, m_initAP, m_cessAP, 
                            m_p_mortNS_AP, m_p_mortCS_AP, a_p_mortYSQ_AP,
@@ -116,30 +106,10 @@ run_model <- function(mla.effect, name){
   l_M.base.mort <- calculate_mort(l_M.base.prev, m_p_M.mortNS_AP, m_p_M.mortCS_AP, 
                                a_p_M.mortYSQ_AP, m_M.NS.LE, df_M.pop)
   
-  sex <- 'Females'
-  l_F.base.prev <- generate_prevs(startyear, sex, m_F.initAP, m_F.cessAP,
-                                  m_p_M.mortNS_AP, m_p_M.mortCS_AP, a_p_M.mortYSQ_AP, 
-                                  df_F.pop, df_F.prevs2013)
-  
-  l_F.base.mort <- calculate_mort(l_F.base.prev, m_p_M.mortNS_AP, m_p_M.mortCS_AP,
-                               a_p_M.mortYSQ_AP, m_F.NS.LE, df_F.pop)
-  
-  
-  df_annualSADs <-as.data.frame(rbind(cbind(l_F.base.mort$v_SADyear,"Females",startyear:endyear),
-                        cbind(l_M.base.mort$v_SADyear,"Males",startyear:endyear),
-                        cbind(l_F.base.mort$v_SADyear+l_M.base.mort$v_SADyear,"Both",startyear:endyear)))
+  df_annualSADs <-as.data.frame(cbind(l_M.base.mort$v_SADyear,"Males",startyear:endyear))
   colnames(df_annualSADs) <- c("SADs","sex","year")
   df_annualSADs$SADs <- as.numeric(df_annualSADs$SADs)
   df_annualSADs$year <- as.numeric(df_annualSADs$year)
-  
-  # ggplot(data=df_annualSADs)+geom_line(aes(x=year, y=SADs, colour=sex)) +scale_y_continuous(breaks=seq(0,70000,5000))
-  
-  # ggplot(x=startyear:endyear,y=colSums(df_F.pop))
-  # plot(colSums(df_M.pop))
-  # lines(colSums(df_F.pop))
-
-  # pop<-as.data.frame(rbind(cbind(colSums(df_F.pop),"F",startyear:endyear),cbind(colSums(df_M.pop),"M",startyear:endyear)))
-  # ggplot(pop)+geom_line(aes(x=as.numeric(pop$V3),y=as.numeric(pop$V1),colour=pop$V2))
   
   m_MLAeffectsAP <- matrix(1,100,calyears)
   colnames(m_MLAeffectsAP) <- startyear:endyear
@@ -149,7 +119,6 @@ run_model <- function(mla.effect, name){
     m_MLAeffectsAP[age, (policyyear-startyear+1):calyears] <- 1 - mla.effect
   }
 
-  m_F.init.policy_AP <- m_MLAeffectsAP*m_F.initAP
   m_M.init.policy_AP <- m_MLAeffectsAP*m_M.initAP
   
   ## APPLY POLICY EFFECTS TO BASELINE INITIATION Starting in Policy Year 2026-2200
@@ -168,13 +137,6 @@ run_model <- function(mla.effect, name){
   l_M.policy.mort <- calculate_mort(l_M.policy.prev, m_p_M.mortNS_AP, m_p_M.mortCS_AP, 
                                     a_p_M.mortYSQ_AP, m_M.NS.LE, df_M.pop)
   
-  sex <- 'Females'
-  l_F.policy.prev <- generate_prevs(startyear, sex, m_F.init.policy_AP, m_F.cessAP,
-                                    m_p_M.mortNS_AP,m_p_M.mortCS_AP, a_p_M.mortYSQ_AP, df_F.pop, df_F.prevs2013)
-  
-  l_F.policy.mort <- calculate_mort(l_F.policy.prev, m_p_M.mortNS_AP, m_p_M.mortCS_AP, 
-                                    a_p_M.mortYSQ_AP, m_F.NS.LE, df_F.pop)
-  
   #------------------- format prev for outputting -----------------------------------
   df_CSprevs <- NULL
   
@@ -183,40 +145,26 @@ run_model <- function(mla.effect, name){
   v_maxage <- c(99, 24, 44, 64, 99)
   
   m_M.CSprev <- l_M.policy.prev$m_CSprevAP
-  m_F.CSprev <- l_F.policy.prev$m_CSprevAP
-  
+
   for (i in c(1:5)){
     minage <- v_minage[i]
     maxage <- v_maxage[i]
 
     # Create population matrices
     m.M.pop_AP <- as.matrix(df_M.pop[,paste0(startyear:endyear)])
-    m.F.pop_AP <- as.matrix(df_F.pop[,paste0(startyear:endyear)])
-    
+
     # Calculate prevalence for men
     v_M.prev.minmax <- colSums(m.M.pop_AP[(minage+1):(maxage+1), ] * m_M.CSprev[(minage+1):(maxage+1), ]) / colSums(m.M.pop_AP[(minage+1):(maxage+1), ])
     
-    # Calculate prevalence for women
-    v_F.prev.minmax <- colSums(m.F.pop_AP[(minage+1):(maxage+1), ] * m_F.CSprev[(minage+1):(maxage+1), ]) / colSums(m.F.pop_AP[(minage+1):(maxage+1), ])
-    
-    # Calculate combined prevalence for both men and women
-    v_numerator <- colSums(m.M.pop_AP[(minage+1):(maxage+1), ] * m_M.CSprev[(minage+1):(maxage+1), ]) + colSums(m.F.pop_AP[(minage+1):(maxage+1), ] * m_F.CSprev[(minage+1):(maxage+1), ])
-    v_denominator <- colSums(m.M.pop_AP[(minage+1):(maxage+1), ]) + colSums(m.F.pop_AP[(minage+1):(maxage+1), ])
-    v_B.prev.minmax <- v_numerator / v_denominator
-    
     # Combine data into a single data frame for the current age group
-    df_CSprev_temp <- as.data.frame(rbind(
-      cbind(v_M.prev.minmax, "Males"),
-      cbind(v_F.prev.minmax, "Females"),
-      cbind(v_B.prev.minmax, "Both")
-    ))
+    df_CSprev_temp <- as.data.frame(cbind(v_M.prev.minmax, "Males"))
     
     # Set column names
     colnames(df_CSprev_temp) <- c("prev", "sex")
     
     # Add additional columns
     df_CSprev_temp$age <- paste0(minage, ".", maxage)
-    df_CSprev_temp$year <- rep(names(v_M.prev.minmax), 3)
+    df_CSprev_temp$year <- names(v_M.prev.minmax)
     df_CSprev_temp$mla.effect <- name
     
     # Combine with the final data frame
@@ -230,75 +178,48 @@ run_model <- function(mla.effect, name){
   #-----------------------------------------------------------------------------
   
   m_M.smokers <- l_M.policy.prev$m_CS
-  m_F.smokers <- l_F.policy.prev$m_CS
   m_M.popAP <- l_M.policy.prev$m_popAP
-  m_F.popAP <- l_F.policy.prev$m_popAP
   m_M.CSprevAP <- cbind(l_M.policy.prev$m_CSprevAP, 'Males')
-  m_F.CSprevAP <- cbind(l_F.policy.prev$m_CSprevAP, 'Females')
   
   l_pop_out <- list(
     mla.effect=mla.effect, 
     m_M_smokers = l_M.policy.prev$m_CS,
-    m_F_smokers = l_F.policy.prev$m_CS,
-    m_M_popAP = l_M.policy.prev$m_popAP,
-    m_F_popAP = l_F.policy.prev$m_popAP
+    m_M_popAP = l_M.policy.prev$m_popAP
   )
   
   #---------------format policy YLL and SADs for outputting --------------------
   #annual sum YLL
   v_M.YLLyear <- l_M.policy.mort$v_YLLyear
-  v_F.YLLyear <- l_F.policy.mort$v_YLLyear
-  v_B.YLLyear <- v_M.YLLyear + v_F.YLLyear
   #cumulative sum YLL
   v_M.cYLL <- cumsum(v_M.YLLyear)
-  v_F.cYLL <- cumsum(v_F.YLLyear)
-  v_B.cYLL <- cumsum(v_B.YLLyear)
-  
   #annual sum SAD
   v_M.SADyear <- l_M.policy.mort$v_SADyear
-  v_F.SADyear <- l_F.policy.mort$v_SADyear
-  v_B.SADyear <- v_M.SADyear+ v_F.SADyear
   #cumulative sum SAD
   v_M.cSAD <- cumsum(v_M.SADyear)
-  v_F.cSAD <- cumsum(v_F.SADyear)
-  v_B.cSAD <- cumsum(v_B.SADyear)
+
   
   #---------------- LYG using YSQ ----------------------------------------------------------------------------
   
   df_M.LYG_AP <- l_M.base.mort$df_YLL_AP - l_M.policy.mort$df_YLL_AP
-  df_F.LYG_AP <- l_F.base.mort$df_YLL_AP - l_F.policy.mort$df_YLL_AP
   #annual sum LYG
   v_M.LYGyear <- colSums(df_M.LYG_AP)
-  v_F.LYGyear <- colSums(df_F.LYG_AP)
-  v_B.LYGyear <- v_M.LYGyear + v_F.LYGyear
+
   #cumulative sum LYG
   v_M.cLYG <- cumsum(v_M.LYGyear)
-  v_F.cLYG <- cumsum(v_F.LYGyear)
-  v_B.cLYG <- cumsum(v_B.LYGyear)
-  
+
   #annual sum SADs averted 
   v_M.SADs_averted <- l_M.base.mort$v_SADyear - l_M.policy.mort$v_SADyear
-  v_F.SADs_averted <- l_F.base.mort$v_SADyear - l_F.policy.mort$v_SADyear
-  v_B.SADs_averted <- v_M.SADs_averted + v_F.SADs_averted
+
   #cumulative sum SADs averted
   v_M.cSADs_averted <- cumsum(v_M.SADs_averted)
-  v_F.cSADs_averted <- cumsum(v_F.SADs_averted)  
-  v_B.cSADs_averted <- cumsum(v_B.SADs_averted)
  
   ##---combine mortality outputs------------------------------------------------------
   m_M.mortout <- cbind(v_M.YLLyear, v_M.cYLL, v_M.SADyear, v_M.cSAD, 
                     v_M.LYGyear, v_M.cLYG, v_M.SADs_averted,
                     v_M.cSADs_averted,startyear:endyear, 'Males')
   
-  m_F.mortout <- cbind(v_F.YLLyear, v_F.cYLL, v_F.SADyear, v_F.cSAD, 
-                      v_F.LYGyear, v_F.cLYG, v_F.SADs_averted,
-                      v_F.cSADs_averted, startyear:endyear, 'Females')
   
-  m_B.mortout <- cbind(v_B.YLLyear, v_B.cYLL, v_B.SADyear, v_B.cSAD, 
-                      v_B.LYGyear, v_B.cLYG, v_B.SADs_averted,
-                      v_B.cSADs_averted, startyear:endyear, 'Both')
-  
-  df_mort.outputs <- as.data.frame(rbind(m_M.mortout,m_F.mortout,m_B.mortout))
+  df_mort.outputs <- as.data.frame(rbind(m_M.mortout))
   colnames(df_mort.outputs) <- c('YLL','cYLL','SADs', 'cSAD', 'LYG', 'cLYG',
                               'SADsAverted','cSADsAverted','year', 'sex' )
   df_mort.outputs$mla.effect <- name
@@ -308,11 +229,10 @@ run_model <- function(mla.effect, name){
                                                          'year'), as.numeric))
 
   # store dataframe with smoking initiation parameters during the policy year
-  df_smkparams <- as.data.frame(c(m_F.init.policy_AP[,paste0(policyyear)], m_F.initAP[,paste0(policyyear)], 
-                        m_M.init.policy_AP[,paste0(policyyear)], m_M.initAP[,paste0(policyyear)]))
-  df_smkparams$sex <- c(rep("Females",200),rep("Males",200))
-  df_smkparams$scenario <- c(rep("T21",100),rep("Baseline",100),rep("T21",100),rep("Baseline",100))
-  df_smkparams$Age <- rep(seq(0:99)-1,4)
+  df_smkparams <- as.data.frame(c(m_M.init.policy_AP[,paste0(policyyear)], m_M.initAP[,paste0(policyyear)]))
+  df_smkparams$sex <- rep("Males",200)
+  df_smkparams$scenario <- c(rep("T21",100),rep("Baseline",100))
+  df_smkparams$Age <- rep(seq(0:99)-1)
   colnames(df_smkparams)[1] <- paste0("prob",policyyear)
   
   return(list(df_mort.outputs= df_mort.outputs, l_pop_out=l_pop_out, df_CSprevs=df_CSprevs, df_smkparams=df_smkparams))

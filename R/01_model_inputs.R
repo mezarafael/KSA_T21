@@ -19,7 +19,6 @@ load(paste0("data/pop_ksa.RData")) # census pop
 load(paste0("data/le_ksa.RData")) # life expectancies
 
 # initialize prevalences in age 2013
-df_F.prevs2013 <- readRDS(file = "APC_Analysis/AgePrevF_099.rds") # age-specific prevalences in 2013
 df_M.prevs2013 <- readRDS(file = "APC_Analysis/AgePrevM_099.rds")
 
 # smoking survey data for model verification
